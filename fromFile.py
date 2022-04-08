@@ -1,10 +1,22 @@
 import time
 import csv
 import os
+from datetime import datetime
+import io
+from typing import final
+import convertTime
 
 def is_file_empty(filePath):
-    # Check if file exist and it is empty
-    return os.path.exists(filePath) and os.stat(filePath).st_size == 0
+    try:
+        import pathlib as p
+        path = p.Path(filePath)
+        if '~' in filePath:
+            path = path.expanduser()
+        if not path.exists() and path.stat().st_size > 0:
+            return True
+        return False
+    except FileNotFoundError:
+        return True
 
 
 def stopwatch(previous_time):
@@ -26,59 +38,138 @@ def stopwatch(previous_time):
             break
     
     return curr_time
+
+
+def setProjectName():
+    projectName=''
+    valid = False
+    while projectName=='' or valid==False:
+        projectName = input('Create unique name for project:')
+        #check if project name already exist
+        valid = True
+        file.seek(0)
+        for row in csvreader:
+                if projectName == row[1].strip(' '):
+                    valid = False
+                    print('Project with this name already exists.')
+         
+    #move pointer to the end of a file
+    #file.seek(0, io.SEEK_END)
+    return projectName
+
+
+#ne azurira se prev time i sprema se pod novu variablu(redak)
+def findProject():
+    key=''
+    projectFound = False
+    while (key=='' and projectFound == False) or key!='exit':
+        key = input('Enter name of existing project, for list of projects type "ls", for exit type "exit":')
+        if key!= 'exit' and key!= 'ls':
+            for index, row in enumerate(csvreader):
+                if key == row[1].strip(' '):
+                    projectFound = True
+                    global previous_time, projectName
+                    previous_time=row[2]
+                    projectName = key
+                    
+                    return index
+        #try again
+        file.seek(0)
+        if key=='ls': 
+              for row in csvreader:
+                print(row)
+        elif key=='exit':
+            #change choice to 'new project'
+            global choice
+            choice='n'
+            return setProjectName()
+        else: print('Project not found. Try Again.')
     
+    
+def getID():
+    if  os.path.getsize(filePath) == 0: 
+        return 0 
+    else: 
+        return csvreader.line_num-1
 
 
+
+projectName = ''
+projectIndex = ''
+choice=''
 final_time = 0
 previous_time = 0
 filePath = 'worktime-tracker-data.csv'
-header = ['Times']
+headerOriginal = ['ID', 'project_name','time', 'date_updated', 'date_created']
+dateCreated = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+dateUpdated = datetime.now().strftime("%d/%m/%Y %H:%M:%S") 
 file_is_empty = is_file_empty(filePath)
-rows = []
-choice=''
+csvreader = ''
+
 
 
 try:
-    if file_is_empty==False:
-        file = open('worktime-tracker-data.csv', 'r+')
-        print('file reading success')
-        csvreader = csv.reader(file)
-        #so it doesnt raise a stop iteration error on EOL
-        header = next(csvreader,None)       
-
-        for row in csvreader:
-            print('tu sam')
-            print(row)
-            rows.append(row)
-            #hardcode for now - we need some flag to know to rewrite value not add two times and write in new row
-            previous_time=row[0]
-            print('row',  row[0])
-            
-    else:
-        file = open('worktime-tracker-data.csv', 'w+')
+    if file_is_empty==True:
+        file = open(filePath, 'w+')
         print('file open success')
+        
+    else:
+        file = open(filePath, 'r+')
+        print('file reading success')
+    
+    csvreader = csv.reader(file)
 except:
     print('Error while opening csv file')
-    #print(error)
+    quit()
+ 
 
 
-if file_is_empty==False:
-    choice = input('Load previous time or start new(type p for previous or n for new:')
+#If file is not empty give user a choice to start from previous project time or create new project
+if  os.path.getsize(filePath)!=0:
+    choice = input('Load previous time or start new(type "p" for previous or "n" for new:')
     
     while choice.lower() not in ['p', 'n']:
-        choice = input('Load previous time or start new(type p for previous or n for new:')
+        choice = input('Load previous time or start new(type "p" for previous or "n" for new:')
     
-    if choice=='n' or choice=='N':
+    if choice.lower()=='n':
         previous_time = 0
-   
-
+        projectName = setProjectName()
+       
+    elif choice.lower()=='p':
+        projectIndex=findProject()
+        dateUpdated = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        #if user has chosen exit in findproject() it returns a string not an index
+        if isinstance(projectIndex, str): projectName=projectIndex
+        
+#If file is empty create new project name
+else:
+    projectName = setProjectName()
+    
+    
 final_time = stopwatch(previous_time)
+final_time = convertTime.getHours(final_time)
 writer = csv.writer(file, lineterminator='\n')
 
-if file_is_empty==True: 
-    writer.writerow(header)
-writer.writerow([final_time])
+if os.path.getsize(filePath) == 0: 
+    writer.writerow(headerOriginal)
+    
+
+
+#update for existing project
+if choice.lower()=='p':  
+    file.seek(0)
+    next(csvreader) #skip header  
+    lines = list(csvreader)
+    lines[projectIndex-1][1] = projectName
+    lines[projectIndex-1][2] = final_time
+    lines[projectIndex-1][3] = dateUpdated
+    
+    #overwrite everything with array
+    writer = csv.writer(open(filePath, 'w'), lineterminator='\n')
+    writer.writerow(headerOriginal)
+    writer.writerows(lines)
+
+#insert new project
+else: writer.writerow([getID(), projectName, final_time, dateUpdated, dateCreated])
 
 file.close()
-
-
