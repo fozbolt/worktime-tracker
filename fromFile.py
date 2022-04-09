@@ -2,8 +2,6 @@ import time
 import csv
 import os
 from datetime import datetime
-import io
-from typing import final
 import convertTime
 
 def is_file_empty(filePath):
@@ -33,6 +31,7 @@ def stopwatch(previous_time):
             print("Timer has stopped")
             end_time=time.time()
             #add previous time (if chosen) to current time
+            previous_time = convertTime.getSeconds(previous_time)
             curr_time=round(float(previous_time) + round(end_time-start_time,2),2)
             print("The time elapsed:",curr_time,'secs')
             break
@@ -53,8 +52,6 @@ def setProjectName():
                     valid = False
                     print('Project with this name already exists.')
          
-    #move pointer to the end of a file
-    #file.seek(0, io.SEEK_END)
     return projectName
 
 
@@ -65,6 +62,7 @@ def findProject():
     while (key=='' and projectFound == False) or key!='exit':
         key = input('Enter name of existing project, for list of projects type "ls", for exit type "exit":')
         if key!= 'exit' and key!= 'ls':
+            file.seek(0)
             for index, row in enumerate(csvreader):
                 if key == row[1].strip(' '):
                     projectFound = True
@@ -90,7 +88,8 @@ def getID():
     if  os.path.getsize(filePath) == 0: 
         return 0 
     else: 
-        return csvreader.line_num-1
+        file.seek(0)
+        return len(list(csvreader))-1
 
 
 
@@ -98,7 +97,7 @@ projectName = ''
 projectIndex = ''
 choice=''
 final_time = 0
-previous_time = 0
+previous_time = '00:00:00'
 filePath = 'worktime-tracker-data.csv'
 headerOriginal = ['ID', 'project_name','time', 'date_updated', 'date_created']
 dateCreated = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -132,7 +131,7 @@ if  os.path.getsize(filePath)!=0:
         choice = input('Load previous time or start new(type "p" for previous or "n" for new:')
     
     if choice.lower()=='n':
-        previous_time = 0
+        previous_time = '00:00:00'
         projectName = setProjectName()
        
     elif choice.lower()=='p':
@@ -170,6 +169,7 @@ if choice.lower()=='p':
     writer.writerows(lines)
 
 #insert new project
-else: writer.writerow([getID(), projectName, final_time, dateUpdated, dateCreated])
+else: 
+    writer.writerow([getID(), projectName, final_time, dateUpdated, dateCreated])
 
 file.close()
