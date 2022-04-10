@@ -6,7 +6,8 @@ choice = input('Run timer in SQL or File mode (type "1" for sql or "2" for file 
         
 while choice.lower() not in ['1', '2']:
     choice = input('Run timer in SQL or File mode (type "1" for sql or "2" for file mode): ')
-    
+
+
 if choice=='1':
     fromDB.runTimer()
 elif choice=='2':

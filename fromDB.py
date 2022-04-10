@@ -1,7 +1,13 @@
-import time
 import pyodbc 
+import dbMethods
+import convertTime
+from datetime import datetime
+import uuid
 
 def runTimer():
+    #dummy connection msg
+    print('Connecting to database')
+    #assuming db exist(is already created) locally
     conn_str = (
         r'DRIVER={SQL Server};'
         r'SERVER=(local);'
@@ -12,62 +18,94 @@ def runTimer():
     cnxn = pyodbc.connect(conn_str)
 
     cursor = cnxn.cursor()
+    choice = ''
+    table = []
 
-    #Simple connection test
-    # cursor.execute("SELECT @@version;") 
-    # row = cursor.fetchone() 
-    # while row: 
-    #     print(row[0])
-    #     row = cursor.fetchone()
+    try:
+        table = dbMethods.getProjects(cursor)
+        table = table.fetchall()
+    except:
+        cursor.execute('''
+        CREATE TABLE Times (
+                ID UNIQUEIDENTIFIER  PRIMARY KEY,
+                projectName VARCHAR(36) NOT NULL,
+                time  VARCHAR(12) NOT NULL,
+                dateUpdated DATETIME NOT NULL,
+                dateCreated DATETIME NOT NULL
+             );
+        ''')
+                    
+    
+    previous_time = '00:00:00'
+    projectID = uuid.uuid1()
+    projectName= ''
+    dateCreated = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    dateUpdated = datetime.now().strftime("%d/%m/%Y %H:%M:%S") 
 
-    final_time = 0
-
-    choice = input('Load previous time or start new(type p for previous or n for new:')
-    while choice.lower() not in ['p', 'n']:
+    if len(table) != 0:
         choice = input('Load previous time or start new(type p for previous or n for new:')
-
-
-    previous_time = 0
-    if choice=='p' or choice=='P':
-        cursor.execute("SELECT * From Times")
-        #ovako uzima zadnjeg, kasnije modificira da uzmemo trazenog
-        for row in cursor.fetchall():
-            previous_time = row[0]
-            break
-
-
-    while True:
-        try:
-            input("Press Enter to continue and ctrl+C to exit the stopwatch")
-            start_time=time.time()
-            print("Stopwatch has started")
-            while True:
-                print("Time elapsed:",round(time.time()-start_time,0),'secs',end='\n')
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("Timer has stopped")
-            end_time=time.time()
-            #add previous time (if chosen) to current time
-            final_time=round(float(previous_time) + round(end_time-start_time,2),2)
-            print("The time elapsed:",final_time,'secs')
-            break
+        while choice.lower() not in ['p', 'n']:
+            choice = input('Load previous time or start new(type p for previous or n for new:')
+            
+        if choice.lower()=='n':
+                previous_time = '00:00:00'
+                projectName = dbMethods.setProjectName(table)
+            
+        elif choice.lower()=='p':
+            result=dbMethods.findProject(table,cursor, cnxn)
+            #if user has chosen exit in findproject() it returns a string not an index because it goes to setProjectName()
+            
+            if isinstance(result, str): 
+                projectName=result
+                choice='n'
+                
+            else:
+                projectName = result[0]
+                previous_time = result[1]
+                dateUpdated = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+    else:
+        print('Database is empty, create your first project timer')
+        projectName = dbMethods.setProjectName(table)
         
         
-    print(final_time)
+        
+    
+    final_time = dbMethods.stopwatch(previous_time)
+    final_time = convertTime.getHours(final_time)
 
-
-    cursor.execute(
-        """
-        INSERT INTO Times
-        (Time)
-        VALUES (?)
-        """,
-        (final_time
+    if choice.lower()=='n':
+        cursor.execute(
+            """
+            INSERT INTO Times
+            (ID,projectName,time,dateUpdated,dateCreated)
+            VALUES (?,?,?,?,?)
+            """,
+            (
+            projectID,
+            projectName,
+            final_time,
+            dateUpdated,
+            dateCreated
+            )
         )
-    )
-    cnxn.commit()
+        cnxn.commit()
 
+        cursor.close()
+        
+    elif choice.lower()=='p':
+        cursor.execute(
+            """
+            UPDATE Times 
+            SET time = ?, dateUpdated = ? WHERE projectName = ?
+            """,
+            ( final_time, dateUpdated, projectName )
+        )
+        cnxn.commit()
 
-
-    cursor.close()
+        cursor.close()
+        
+        
     cnxn.close()
+    
+runTimer()

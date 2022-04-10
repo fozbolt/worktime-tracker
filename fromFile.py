@@ -62,6 +62,7 @@ def runTimer():
             
     #If file is empty create new project name
     else:
+        print('Database is empty, create your first project timer')
         projectName = fileMethods.setProjectName(file,csvreader)
         
         
@@ -93,3 +94,5 @@ def runTimer():
         writer.writerow([uuid.uuid1(), projectName, final_time, dateUpdated, dateCreated])
 
     file.close()
+
+runTimer()

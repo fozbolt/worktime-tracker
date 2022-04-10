@@ -2,7 +2,6 @@ import time
 import os
 import convertTime
 import csv 
-import convertTime
 
 def is_file_empty(filePath):
     try:
@@ -23,10 +22,12 @@ def stopwatch(previous_time):
         try:
             input("Press Enter to continue and ctrl+C to exit the stopwatch")
             start_time=time.time()
-            print("Stopwatch has started")
+            print("Timer has started")
             while True:
-            #     print("Time elapsed:",round(time.time()-start_time,0),'secs',end='\n')
-                time.sleep(1)
+                pass
+                # print("Time elapsed:",round(time.time()-start_time,0),'secs',end='\n')
+                # time.sleep(1)
+                
         except KeyboardInterrupt:
             print("Timer has stopped")
             end_time=time.time()
@@ -48,9 +49,9 @@ def setProjectName(file,csvreader):
         valid = True
         file.seek(0)
         for row in csvreader:
-                if projectName == row[1].strip(' '):
-                    valid = False
-                    print('Project with this name already exists.')
+            if projectName == row[1].strip(' '):
+                valid = False
+                print('Project with this name already exists.')
          
     return projectName
 
@@ -112,7 +113,6 @@ def findProject(file,csvreader):
             for index, row in enumerate(csvreader):
                 if key == row[1].strip(' '):
                     projectFound = True
-                    global previous_time
                     previous_time=row[2]
                     
                     return index,previous_time
@@ -120,8 +120,12 @@ def findProject(file,csvreader):
         file.seek(0)
         #refactor this with switch or something
         if key=='ls': 
-              for row in csvreader:
+            lst = []
+            for row in csvreader:
+                lst.append(row)
                 print(row)
+            if len(lst) > 1: #1 is header row
+                print('There are no existing projects in database at the moment. Type "exit" and create new project')
         elif key=='help':
             openHelp()
         elif key=='del':
