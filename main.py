@@ -1,6 +1,7 @@
 from secrets import choice
 import fromDB
 import fromFile
+import os
  
 choice = input('Run timer in SQL or File mode (type "1" for sql or "2" for file mode): ')
         
@@ -15,3 +16,4 @@ elif choice=='2':
 
 
 print('Timer closed')
+os.system('pause')

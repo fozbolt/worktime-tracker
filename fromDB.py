@@ -3,49 +3,22 @@ import dbMethods
 import convertTime
 from datetime import datetime
 import uuid
+import dbConnection
 
 def runTimer():
-    #dummy connection msg
-    print('Connecting to database')
-    #assuming db exist(is already created) locally
-    conn_str = (
-        r'DRIVER={SQL Server};'
-        r'SERVER=(local);'
-        r'DATABASE=worktime_tracker_db;'
-        r'Trusted_Connection=yes;'
-        r'pool_timeout:30;'
-    )
-    cnxn = pyodbc.connect(conn_str)
-
-    cursor = cnxn.cursor()
-    choice = ''
-    table = []
-
-    try:
-        table = dbMethods.getProjects(cursor)
-        table = table.fetchall()
-    except:
-        cursor.execute('''
-        CREATE TABLE Times (
-                ID UNIQUEIDENTIFIER  PRIMARY KEY,
-                projectName VARCHAR(36) NOT NULL,
-                time  VARCHAR(12) NOT NULL,
-                dateUpdated DATETIME NOT NULL,
-                dateCreated DATETIME NOT NULL
-             );
-        ''')
-                    
+    cursor,table,cnxn = dbConnection.connect()
     
     previous_time = '00:00:00'
     projectID = uuid.uuid1()
     projectName= ''
     dateCreated = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     dateUpdated = datetime.now().strftime("%d/%m/%Y %H:%M:%S") 
+    choice='n'
 
     if len(table) != 0:
-        choice = input('Load previous time or start new(type p for previous or n for new:')
+        choice = input('Load previous time or start new(type p for previous or n for new): ')
         while choice.lower() not in ['p', 'n']:
-            choice = input('Load previous time or start new(type p for previous or n for new:')
+            choice = input('Load previous time or start new(type p for previous or n for new): ')
             
         if choice.lower()=='n':
                 previous_time = '00:00:00'
@@ -108,4 +81,4 @@ def runTimer():
         
     cnxn.close()
     
-runTimer()
+#runTimer()

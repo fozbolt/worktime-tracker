@@ -98,7 +98,9 @@ def deleteProject(file,csvreader):
         elif key=='ls': 
             for row in csvreader:
                 print(row)   
-        else: print('File not found')  
+        else: 
+            key=''
+            print('File not found')  
 
 
 
@@ -124,7 +126,7 @@ def findProject(file,csvreader):
             for row in csvreader:
                 lst.append(row)
                 print(row)
-            if len(lst) > 1: #1 is header row
+            if len(lst) < 2: #1 is header row
                 print('There are no existing projects in database at the moment. Type "exit" and create new project')
         elif key=='help':
             openHelp()

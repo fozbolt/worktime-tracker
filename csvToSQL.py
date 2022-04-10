@@ -1,43 +1,69 @@
 import pandas as pd
 import pyodbc 
 
-data = pd.read_csv (r'C:\Users\Ron\Desktop\Test\products.csv')   
+data = pd.read_csv ('worktime-tracker-data.csv')   
 df = pd.DataFrame(data)
 
-print(df)
+cnxn = 0
+cursor = 0
 
+#print(df)
 
-conn_str = (
-        r'DRIVER={SQL Server};'
-        r'SERVER=(local);'
-        r'DATABASE=worktime_tracker_db;'
-        r'Trusted_Connection=yes;'
-        r'pool_timeout:30;'
-    )
+try:
+    conn_str = (
+            r'DRIVER={SQL Server};'
+            r'SERVER=(local);'
+            r'DATABASE=worktime_tracker_db;'
+            r'Trusted_Connection=yes;'
+            r'pool_timeout:30;'
+        )
 
-cnxn = pyodbc.connect(conn_str)
+    cnxn = pyodbc.connect(conn_str)
 
-cursor = cnxn.cursor()
+    cursor = cnxn.cursor()
     
+except Exception as e:
+    print(e)
     
-#ako nema tablea vec, za bazu se pretpostavlja da postoji
-cursor.execute('''
-		CREATE TABLE products (
-			product_id int primary key,
-			product_name nvarchar(50),
-			price int
-			)
-               ''')
-
-
-#insert dataframe into table
-for row in df.itertuples():
+#create table if it doesnt exist, db must be created manually for now
+try:
     cursor.execute('''
-                INSERT INTO products (product_id, product_name, price)
-                VALUES (?,?,?)
-                ''',
-                row.product_id, 
-                row.product_name,
-                row.price
-                )
-conn.commit()
+        CREATE TABLE Times (
+                ID UNIQUEIDENTIFIER  PRIMARY KEY,
+                projectName VARCHAR(36) NOT NULL,
+                time  VARCHAR(12) NOT NULL,
+                dateUpdated DATETIME NOT NULL,
+                dateCreated DATETIME NOT NULL
+             );
+        ''')
+    cnxn.commit()
+except: 
+    pass
+
+try:
+    #insert dataframe into table
+    for row in df.itertuples():
+        cursor.execute(
+            """
+            INSERT INTO Times
+            (ID,projectName,time,dateUpdated,dateCreated)
+            VALUES (?,?,?,?,?)
+            """,
+            (
+            row.ID,
+            row.projectName,
+            row.time,
+            row.dateUpdated,
+            row.dateCreated
+            )
+        )
+        cnxn.commit()
+
+        cursor.close()
+    cnxn.commit()
+
+except Exception as e:
+    print(e)
+    
+
+cnxn.close()

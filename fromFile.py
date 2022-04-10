@@ -36,12 +36,12 @@ def runTimer():
     
 
 
-    #If file is not empty give user a choice to start from previous project time or create new project
-    if  os.path.getsize(filePath)!=0:
-        choice = input('Load previous time or start new(type "p" for previous or "n" for new: ')
+    #If file is not empty give user a choice to start from previous project time or create new project (>80 because of header) - refactor this
+    if  os.path.getsize(filePath)>80:
+        choice = input('Load previous time or start new(type "p" for previous or "n" for new): ')
         
         while choice.lower() not in ['p', 'n']:
-            choice = input('Load previous time or start new(type "p" for previous or "n" for new: ')
+            choice = input('Load previous time or start new(type "p" for previous or "n" for new): ')
         
         if choice.lower()=='n':
             previous_time = '00:00:00'

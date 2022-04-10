@@ -1,2 +1,8 @@
 tasks.md
 tempCodeRunnerFile.py
+dist
+main.spec
+build
+__pycache__
+GUI.py
+test.py
