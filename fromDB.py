@@ -81,4 +81,4 @@ def runTimer():
         
     cnxn.close()
     
-#runTimer()
+runTimer()

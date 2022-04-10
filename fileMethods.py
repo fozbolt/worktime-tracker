@@ -2,6 +2,7 @@ import time
 import os
 import convertTime
 import csv 
+import sys
 
 def is_file_empty(filePath):
     try:
@@ -17,16 +18,27 @@ def is_file_empty(filePath):
 
 
 def stopwatch(previous_time):
-    curr_time = 0
+    '''alert:
+    -this method has two stopwatch-like functions, one is with start-end time and one is with incrementation
+    reason behind this is that because of principles that standard stopwatch calculates time after its stopping,
+    incrementation is way easier for dynamic result presentation, but incrementation is less precise so i put both methods
+    to work each for its own purpose
+    '''
+    curr_time = convertTime.getSeconds(previous_time)
+    curr_dynamic_timer = curr_time
     while True:
+      
         try:
             input("Press Enter to continue and ctrl+C to exit the stopwatch")
             start_time=time.time()
             print("Timer has started")
             while True:
-                pass
                 # print("Time elapsed:",round(time.time()-start_time,0),'secs',end='\n')
-                # time.sleep(1)
+                txt = convertTime.getHours(curr_dynamic_timer)+ chr(13)
+                sys.stdout.write(txt)
+                sys.stdout.flush()
+                time.sleep(1)
+                curr_dynamic_timer = curr_dynamic_timer + 1
                 
         except KeyboardInterrupt:
             print("Timer has stopped")
