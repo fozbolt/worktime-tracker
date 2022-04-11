@@ -56,7 +56,7 @@ def setProjectName(file,csvreader):
     projectName=''
     valid = False
     while projectName=='' or valid==False:
-        projectName = input('Create unique name for project: ')
+        projectName = input('Create unique name for project or type "exit: ')
         #check if project name already exist
         valid = True
         file.seek(0)
@@ -64,12 +64,12 @@ def setProjectName(file,csvreader):
             if projectName == row[1].strip(' '):
                 valid = False
                 print('Project with this name already exists.')
-         
+        if projectName == 'exit': quit()
     return projectName
 
 
 def openHelp():
-    print('1) for list of projects type "ls"\n2) for deleting a project type "del"\n3) for exit type "exit":')
+    print('1) for list of projects type "ls"\n2) for deleting a project type "del"\n3) to manually add time to previous project type "add"\n4) for exit type "exit":')
 
 # def rewriteIDs():
 #     #again not optimal because of another file opening
@@ -109,7 +109,7 @@ def deleteProject(file,csvreader):
             print('Exited successfully')
         elif key=='ls': 
             for row in csvreader:
-                print(row)   
+                print(row) 
         else: 
             key=''
             print('File not found')  
@@ -128,7 +128,7 @@ def findProject(file,csvreader):
                 if key == row[1].strip(' '):
                     projectFound = True
                     previous_time=row[2]
-                    
+             
                     return index,previous_time
         #try again
         file.seek(0)
@@ -145,12 +145,72 @@ def findProject(file,csvreader):
         elif key=='del':
             deleteProject(file,csvreader)
             #rewriteIDs()
+        elif key=='add':
+            return addTimeManually(file,csvreader)
         elif key=='exit':
             return setProjectName(file,csvreader)
         else: 
             print('Project not found. Try Again.')
     
+
+
+def addTimeManually(file,csvreader):
+    #this function is not optimal because it opens files again
+    key=''
+    projectFound = False
+    previous_time = 0
     
+    while (key=='' and projectFound == False) or key!='exit':
+        key = input('To manually add time, enter the name of existing project, for help type "help": ')
+        if key!= 'exit' and key!= 'ls':
+            file.seek(0)
+            for index, row in enumerate(csvreader):
+                if key == row[1].strip(' '):
+                    projectFound = True
+                    print('Fethed previous time: ', row[2])
+                    #convert to seconds to sum it up and then back to timestring
+                    previous_time = convertTime.getSeconds(row[2]) + convertTime.getSeconds(manualUserInput())
+                    previous_time = convertTime.getHours(previous_time)
+                    
+                    return index,previous_time
+        #try again
+        file.seek(0)
+        if projectFound == True: 
+            #it doesnt go to this because we return it earlier, but i'll leave it for now
+            print('Time added successfully. New time: ', previous_time) 
+            key='exit'  
+        elif key=='exit': 
+            print('Exited successfully')
+        elif key=='ls': 
+            for row in csvreader:
+                print(row)
+        elif key=='help':
+            openHelp()
+        else: 
+            key=''
+            print('File not found')  
+
+
+def manualUserInput():
+    time=''
+    validFormat=False
+    while time=='' or validFormat==False:
+        time = input('Enter time that you want to add to fetched previous time ("HH:MM:SS" fromat): ')    
+        validFormat = checkFormat(time)
+        
+    return time   
+
+
+def checkFormat(time_string):
+    try:
+        time.strptime(time_string, '%H:%M:%S')
+    except ValueError:
+        return False
+    
+    return True
+
+     
+            
 def getID(filePath, file, csvreader):
     if  os.path.getsize(filePath) == 0: 
         return 0 

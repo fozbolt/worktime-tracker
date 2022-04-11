@@ -95,4 +95,4 @@ def runTimer():
 
     file.close()
 
-#runTimer()
+runTimer()

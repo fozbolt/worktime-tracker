@@ -6,3 +6,6 @@ build
 __pycache__
 GUI.py
 test.py
+.gitignore
+__pycache__/
+worktime-tracker-data.csv

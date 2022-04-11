@@ -42,7 +42,6 @@ def runTimer():
         projectName = dbMethods.setProjectName(table)
         
         
-        
     
     final_time = dbMethods.stopwatch(previous_time)
     final_time = convertTime.getHours(final_time)
@@ -81,4 +80,4 @@ def runTimer():
         
     cnxn.close()
     
-#runTimer()
+runTimer()

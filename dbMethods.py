@@ -7,7 +7,7 @@ def setProjectName(table):
     projectName=''
     valid = False
     while projectName=='' or valid==False:
-        projectName = input('Create unique name for project: ')
+        projectName = input('Create unique name for project or type "exit: ')
         #check if project name already exist
         valid = True
         
@@ -16,18 +16,19 @@ def setProjectName(table):
                 valid = False
                 print('Project with this name already exists.')
                 break
+        if projectName == 'exit': quit()   
         
     return projectName
 
 
-#what with this choice?
+
 def getProjects(cursor):
     return cursor.execute("SELECT * From Times")
 
 
 
 def openHelp():
-    print('1) for list of projects type "ls"\n2) for deleting a project type "del"\n3) for exit type "exit":')
+    print('1) for list of projects type "ls"\n2) for deleting a project type "del"\n3) to manually add time to previous project type "add"\n4) for exit type "exit":')
     
     
 def deleteProject(table, cursor, conn):
@@ -55,11 +56,69 @@ def deleteProject(table, cursor, conn):
             print('Exited successfully')
         elif key=='ls': 
             for row in table:
-                print(row)   
+                print(row)
         else: print('File not found')  
   
 
+
+def addTimeManually(table, cursor, conn):
+    key=''
+    projectFound = False
+    previous_time = 0
+    
+    while (key=='' and projectFound == False) or key!='exit':
+        key = input('To manually add time, enter the name of existing project, for help type "help": ')
+        if key!= 'exit' and key!= 'ls':
+            for index, row in enumerate(table):
+                if key == row[1].strip(' '):
+                    projectFound = True
+                    print('Fethed previous time: ', row[2])
+                    #convert to seconds to sum it up and then back to timestring
+                    previous_time = convertTime.getSeconds(row[2]) + convertTime.getSeconds(manualUserInput())
+                    previous_time = convertTime.getHours(previous_time)
+                    
+                    return key,previous_time
+                
+        #refactor this with switch or something
+        if projectFound == True:
+            print('Additional time successfully added')
+            return getProjects(cursor)
+        elif key=='ls': 
+            if len(table) == 0:
+                print('There are no existing projects in database at the moment. Type "exit" and create new project')
+            else:
+                for row in table:
+                    print(row)
+        elif key=='help':
+            openHelp()
+    
+        elif key=='exit':
+            return setProjectName(table)
+        else: 
+            print('Project not found. Try Again.')
+
+
+def manualUserInput():
+    time=''
+    validFormat=False
+    while time=='' or validFormat==False:
+        time = input('Enter time that you want to add to fetched previous time ("HH:MM:SS" fromat): ')    
+        validFormat = checkFormat(time)
         
+    return time   
+
+
+
+def checkFormat(time_string):
+    try:
+        time.strptime(time_string, '%H:%M:%S')
+    except ValueError:
+        return False
+    
+    return True
+
+
+      
 
 def findProject(table, cursor, conn):
     key=''
@@ -86,11 +145,15 @@ def findProject(table, cursor, conn):
         elif key=='del':
             #fetch updated db after deletion
             cursor = deleteProject(table, cursor, conn)
+            print(cursor)
             table = dbMethods.getProjects(cursor)
             table = table.fetchall()
             #rewriteIDs()
         elif key=='exit':
             return setProjectName(table)
+        elif key =='add':
+            return addTimeManually(table, cursor, conn)
+      
         else: 
             print('Project not found. Try Again.')
 
