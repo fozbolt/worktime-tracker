@@ -3,8 +3,11 @@
 ## CLI timer for tracking time spend on different projects with option to manage data from database or csv
 
 Create .exe:
+ - pip install pyodbc
  - pip install pyinstaller
- - pyinstaller --onefile c:\Users\...main.py
+ - pyinstaller --onefile main.py
+ - -possible needed to modify your PyInstaller command to include the pyodbc module: pyinstaller --onefile --hidden-import=pyodbc main.py
+ - run: ./dist/main
 
 to-do:
 - sql batch .exe run
