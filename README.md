@@ -1,6 +1,6 @@
 # worktime-tracker
 
-## CLI timer for tracking time spend on different projects with option to manage data from database or csv
+## CLI timer for tracking time spend on different projects with option to manage data from database or csv (+ feature to convert csv to sql and vise versa)
 
 Create .exe:
  - pip install pyodbc
@@ -8,6 +8,9 @@ Create .exe:
  - pyinstaller --onefile main.py
  - -possible needed to modify your PyInstaller command to include the pyodbc module: pyinstaller --onefile --hidden-import=pyodbc main.py
  - run: ./dist/main
+
+Connect to dummy db:
+ - install msql server if on windows or mariadb if on mac then comment out code for the unused one in dbConnection.py
 
 to-do:
 - sql batch .exe run
