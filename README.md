@@ -3,10 +3,10 @@
 ## CLI timer for tracking time spend on different projects with option to manage data from database or csv (+ feature to convert csv to sql and vise versa)
 
 Create .exe:
- - pip install pyodbc
+ - pip install pyodbc or pymysql
  - pip install pyinstaller
  - pyinstaller --onefile main.py
- - -possible needed to modify your PyInstaller command to include the pyodbc module: pyinstaller --onefile --hidden-import=pyodbc main.py
+ - -possible needed to modify your PyInstaller command to include the pyodbc module: pyinstaller --onefile --hidden-import=pyodbc main.py  or pymysql
  - run: ./dist/main
 
 Connect to dummy db:
